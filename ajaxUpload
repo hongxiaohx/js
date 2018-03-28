@@ -1,0 +1,118 @@
+/// <reference path="jquery-1.10.2.js" />
+/// <reference path="jquery.form.js" />
+
+ /*-------------------1.通过form.js的ajaxSubmit()的方法。HTML代码中需要<form>元素---------------------------------
+            var options = {
+            success: function (responseText, statusText, xhr, $form) {
+            var picPath = responseText.pic;
+            saveImgName = responseText.saveImgName;
+            if (picPath == "") {
+            alert(responseText.error);
+            }
+            else {
+
+            // $("#emPhoto").attr("src", picPath);
+            }
+            },
+            error: function (XMLHttpRequest, textStatus, errorThrown) {
+            console.log(textStatus);
+            console.log(errorThrown);
+            }
+            };
+
+            $("#uploadIMG").ajaxSubmit(options);
+            */
+            
+            $("#uploadIMG").ajaxSubmit({
+                url: "/home/uploadimg",
+                type: "POST",
+                dataType: "json",
+                success: function (d) { alert(d.message) },
+                xhr: function () {
+                    var myXHR = $.ajaxSettings.xhr();
+                    if (myXHR.upload) {
+                        myXHR.upload.addEventListener('progress', progressfun, false);
+                    }
+                    return myXHR;
+                },
+                error: function (e) { alert(e.status) }
+            });
+
+ /*--------------需要IE9以上浏览器--------通过FormData数据，然后ajax上传或原生XHR上传-------HTML代码中不需要<form>元素------------*/
+
+            function uploadFile(imgObj, imgTitle) {
+                var file = imgObj.files[0];
+                var fd = new FormData();
+                if ($("#imgtitle").val() == "" || $("#imgtitleEn").val() == "" || $("#happenTime").val() == "") {
+                    alert("标题，英文标题，发生时间不能为空");
+                }
+                else {
+
+                    var imgtitle = $("#imgtitle").val();
+                    var imgtitleEn = $("#imgtitleEn").val();
+                    var happenTime = $("#happenTime").val();
+                    var newsType = $("#selNews").val();
+                    xhr = new XMLHttpRequest();
+                    fd.append("upFile", file);
+                    xhr.open("POST", "/adminmanager/uploadfile");
+                    xhr.onreadystatechange = function () {
+                        if (this.readyState == 4) {
+                            if (this.status == 200) {
+                                //alert("图片上传OK");
+                            }
+                            else {
+                                alert("error,status=" + this.status);
+                            }
+                        }
+                    }
+                    xhr.onload = function () {
+                        var jsobj = JSON.parse(this.responseText);
+                        $("#submit").css("display", "none");
+                        //alert(jsobj.rs);
+
+                        var jsdata = new newsData(imgtitle, imgtitleEn, happenTime, newsType, "", jsobj.imgurl);
+                        uploadMessage(jsdata);
+
+                    }
+                    xhr.upload.onprogress = function (evt) {
+                        var loaded = evt.loaded;
+                        var total = evt.total;
+                        var showpro = Math.round(loaded / total * 100) + "%";
+                        $("#progress").html(showpro);
+                    }
+                    xhr.send(fd);
+                }
+
+            }
+
+//FormData -------------------- 上传文件 带进度
+
+ function ajaxUploadFile(){
+        var formData=new FormData($("#form1")[0]);
+        $.ajax({
+            url:"/home/testajax",
+            type:"POST",
+            data:formData,
+            xhr:function(){
+                var myXHR=$.ajaxSettings.xhr();
+                if(myXHR.upload){
+                    myXHR.upload.addEventListener("progress",progressHandle,false);
+                }
+                return myXHR;
+            },
+            success:function(d){
+               //alert(d);
+            },
+            error:function(e){
+               alert(e.status);
+            },
+            contentType:false,//必须去掉默认连接类型
+            processData:false  //必须去掉默认数据类型
+        })
+
+function progressHandle(evn){
+      var loaded=evn.loaded;
+      var total=evn.total;
+      var showpro=Math.round(loaded/total*100)+"%";
+      $("#progress").html(showpro);
+    }
