@@ -1,0 +1,26 @@
+ <script>
+        //读取图片显示 图片到img元素上
+        function show(file, imgid) {
+            //实例化reader对象
+            var reader = new FileReader();
+            var img = document.getElementById(imgid);
+            reader.onload = function (evt) {
+                img.width = "120";
+                img.src = evt.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+        //获取file对象
+        var inputImg = document.getElementById("inputImg");
+        inputImg.onchange = function () {
+            var showDiv = document.getElementById("showImg");
+            //迭代input file中的文件
+            for (var i = 0; i < inputImg.files.length; i++) {
+                //console.log(i);
+                var img = document.createElement("img");
+                img.id = img + i;
+                showDiv.append(img);
+                show(inputImg.files[i], img.id);
+            }
+        };
+    </script>
